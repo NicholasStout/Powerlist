@@ -18,7 +18,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
 # initialize the app with the extension
 db.init_app(app)
 
-#planning on using flask-login (flask-oauth?) and flask principal for authentication and role separation
+#flask-security-too for authentication and role separation
 
 
 
@@ -143,8 +143,8 @@ def user_delete(uid):
 #    creationDateTime = db.Column(db.DateTime, server_default=func.now(), nullable=False)
 #    lastEditDateTime = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
 #    lastEditBy = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-@app.route("/user/<int:uid>/lists")
-def list_list(uid):
+@app.route("/lists")
+def list_list():
     lists = List.query.all()
     #return render_template("user/list.html", users=users)
     #print(users[0])
@@ -159,7 +159,6 @@ def list_create(uid):
             public = request.get_json()["public"]
         if 'sublistOf' in request.get_json().keys():
             public = request.get_json()["sublistOf"]
-        request.get_json
         l = List(
             user=uid,
             name=request.get_json()["title"],
@@ -173,15 +172,15 @@ def list_create(uid):
 
     return render_template("user/create.html")
 
-@app.route("/user/<int:uid>/list/<int:lid>")
-def list_detail(uid, lid):
+@app.route("/list/<int:lid>")
+def list_detail(lid):
     #user = db.get_or_404(User, id)
-    return create_json(List.query.filter_by(id=lid,user=uid).all())
+    return create_json(List.query.filter_by(id=lid).all())
     return l
     #return render_template("user/detail.html", user=user)
 
-@app.route("/user/<int:id>/list/<int:lid>/delete", methods=["GET", "POST"])
-def list_delete(uid, lid):
+@app.route("/list/<int:lid>/delete", methods=["GET", "POST"])
+def list_delete(lid):
     user = db.get_or_404(User, id)
 
     if request.method == "POST":
@@ -194,10 +193,51 @@ def list_delete(uid, lid):
 #    id = db.Column(db.Integer, primary_key=True)
 #    user = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 #    lst = db.Column(db.Integer, db.ForeignKey("list.id"), nullable=False)
+#    order = db.Column(db.Integer, autoincrement=True)
 #    name = db.Column(db.String, nullable=False)
 #    creationDateTime = db.Column(db.DateTime, server_default=func.now(), nullable=False)
 #    lastEditDateTime = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
-#    lastEditBy = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)    
+#    lastEditBy = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)   
+
+@app.route("/columns")
+def column_list():
+    lists = Column.query.all()
+    #return render_template("user/list.html", users=users)
+    #print(users[0])
+    return create_json(lists)
+
+@app.route("/list/<int:lid>/column/create", methods=["GET", "POST"])
+def column_create(lid):
+    
+    if request.method == "POST":
+        lst = List.query.filter_by(id=lid).one()
+        request.get_json
+        c = Column(
+            user=lst.user,
+            name=request.get_json()["name"],
+            lastEditBy=uid
+        )
+        db.session.add(l)
+        db.session.commit()
+        return str(l.id)
+
+    return render_template("user/create.html")
+
+@app.route("/list/<int:lid>")
+def list_detail(lid):
+    #user = db.get_or_404(User, id)
+    return create_json(List.query.filter_by(id=lid,user=uid).all())
+    return l
+    #return render_template("user/detail.html", user=user)
+
+@app.route("/list/<int:lid>/delete", methods=["GET", "POST"])
+def list_delete(lid):
+    user = db.get_or_404(User, id)
+
+    if request.method == "POST":
+        db.session.delete(user)
+        db.session.commit()
+        return redirect(url_for("user_list"))
 
 
 
